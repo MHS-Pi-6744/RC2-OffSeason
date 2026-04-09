@@ -16,12 +16,14 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Configs.Default;
-import frc.robot.motor_ctl.Flywheel;
+import frc.robot.majc4frc.motor_ctl.rev.CommandSparkFlex;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import com.revrobotics.spark.SparkBase.ControlType;
+
 public class ShooterSubsystem extends SubsystemBase {
-  private Flywheel m_left, m_center, m_right;
+  private CommandSparkFlex m_left, m_center, m_right;
   Supplier<Double> distance;
   Function<Double, Double> func =
       (x) -> {
@@ -31,15 +33,15 @@ public class ShooterSubsystem extends SubsystemBase {
       };
 
   public ShooterSubsystem(Supplier<Double> distance) {
-    m_left = new Flywheel(kLeftCanId, Default.Config);
-    m_center = new Flywheel(kCenterCanId, Default.Config);
-    m_right = new Flywheel(kRightCanId, Default.Config.inverted(true));
+    m_left = new CommandSparkFlex(kLeftCanId, Default.Config);
+    m_center = new CommandSparkFlex(kCenterCanId, Default.Config);
+    m_right = new CommandSparkFlex(kRightCanId, Default.Config.inverted(true));
     this.distance = distance;
   }
 
   public Command runRPM(double rpm) {
     return new ParallelCommandGroup(
-        m_left.runRPM(rpm), m_center.runRPM(rpm), m_right.runRPM(rpm), new WaitCommand(0.1));
+        m_left.setSetpoint(rpm, ControlType.kVelocity), m_center.setSetpoint(rpm, ControlType.kVelocity), m_right.setSetpoint(rpm, ControlType.kVelocity), new WaitCommand(0.1));
   }
 
   public Command stopFlywheel() {
@@ -47,28 +49,9 @@ public class ShooterSubsystem extends SubsystemBase {
         m_left.stopMotor(), m_center.stopMotor(), m_right.stopMotor(), new WaitCommand(0.1));
   }
 
-  public Command runAtSet() {
-    return new ParallelCommandGroup(
-        m_left.runAtSet(), m_center.runAtSet(), m_right.runAtSet(), new WaitCommand(0.1));
-  }
-
-  public Command incrementSetpoint(int increment) {
-    return new ParallelCommandGroup(
-        m_left.incrSet(increment),
-        m_center.incrSet(increment),
-        m_right.incrSet(increment),
-        new WaitCommand(0.1));
-  }
-
-  public void rpmCtl(double rpm) {
-    m_left.rpmCtl(rpm);
-    m_center.rpmCtl(rpm);
-    m_right.rpmCtl(rpm);
-  }
-
   public void smartShoot(double distance) {
     var rpm = func.apply(distance);
-    rpmCtl(rpm);
+    runRPM(rpm);
   }
 
   public void smartShoot(Supplier<Double> distance) {
@@ -89,7 +72,7 @@ public class ShooterSubsystem extends SubsystemBase {
   }
 
   public boolean atSetpoint() {
-    return m_left.atSetpoint() || m_center.atSetpoint() || m_right.atSetpoint();
+    return m_left.position(0).getAsBoolean() || m_center.position(0).getAsBoolean() || m_right.position(0).getAsBoolean();
   }
 
   public Trigger setpointAchieved() {
