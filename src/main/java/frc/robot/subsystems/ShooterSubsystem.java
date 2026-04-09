@@ -25,12 +25,11 @@ import com.revrobotics.spark.SparkBase.ControlType;
 public class ShooterSubsystem extends SubsystemBase {
   private CommandSparkFlex m_left, m_center, m_right;
   Supplier<Double> distance;
-  Function<Double, Double> func =
-      (x) -> {
-        var max = 4000;
-        var val = 366 * x + 2000;
-        return val > max ? max : val;
-      };
+  Function<Double, Double> func = (x) -> {
+    var max = 4000;
+    var val = 366 * x + 2000;
+    return val > max ? max : val;
+  };
 
   public ShooterSubsystem(Supplier<Double> distance) {
     m_left = new CommandSparkFlex(kLeftCanId, Default.Config);
@@ -41,7 +40,8 @@ public class ShooterSubsystem extends SubsystemBase {
 
   public Command runRPM(double rpm) {
     return new ParallelCommandGroup(
-        m_left.setSetpoint(rpm, ControlType.kVelocity), m_center.setSetpoint(rpm, ControlType.kVelocity), m_right.setSetpoint(rpm, ControlType.kVelocity), new WaitCommand(0.1));
+        m_left.setSetpoint(rpm, ControlType.kVelocity), m_center.setSetpoint(rpm, ControlType.kVelocity),
+        m_right.setSetpoint(rpm, ControlType.kVelocity), new WaitCommand(0.1));
   }
 
   public Command stopFlywheel() {
@@ -72,7 +72,8 @@ public class ShooterSubsystem extends SubsystemBase {
   }
 
   public boolean atSetpoint() {
-    return m_left.position(0).getAsBoolean() || m_center.position(0).getAsBoolean() || m_right.position(0).getAsBoolean();
+    return m_left.isPositionExactly(0).getAsBoolean() || m_center.isPositionExactly(0).getAsBoolean()
+        || m_right.isPositionExactly(0).getAsBoolean();
   }
 
   public Trigger setpointAchieved() {
