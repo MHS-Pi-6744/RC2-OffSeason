@@ -111,8 +111,7 @@ public class RobotContainer {
           new InstantCommand(() -> driveTagAssisted()),
           new WaitCommand(0.1));
   private Command m_feeder_run =
-      new ParallelCommandGroup(
-          m_sucker.set(1.0), m_feeder.set(1.0), new WaitCommand(0.1));
+      new ParallelCommandGroup(m_sucker.set(1.0), m_feeder.set(1.0), new WaitCommand(0.1));
   private Command m_feeder_stop =
       new ParallelCommandGroup(
           m_sucker.stopMotor(),
@@ -121,10 +120,7 @@ public class RobotContainer {
           new WaitCommand(0.1));
   private Command waterfallRun =
       new ParallelCommandGroup(
-          m_sucker.set(1.0),
-          m_feeder.set(1.0),
-          m_shooter.runRPM(900),
-          new WaitCommand(0.1));
+          m_sucker.set(1.0), m_feeder.set(1.0), m_shooter.runRPM(900), new WaitCommand(0.1));
   private Command waterfallStop =
       new ParallelCommandGroup(
           m_sucker.stopMotor(),
